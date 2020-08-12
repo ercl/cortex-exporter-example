@@ -1,0 +1,18 @@
+{
+    "instrumentConfigs": [
+        {
+            "type": "COUNTER",
+            "label": "a.counter",
+            "description": "Counts things",
+            "dataPointCount": 10,
+            "recordInterval": "1s"
+        },
+        {
+            "type": "VALUERECORDER",
+            "label": "a.valuerecorder",
+            "description": "Records values",
+            "dataPointCount": 10,
+            "recordInterval": "1s"
+        }
+    ]
+}

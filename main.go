@@ -15,6 +15,9 @@ import (
 
 func main() {
 
+}
+
+func sendDataToPrometheus() {
 	// Setup a new Prometheus Exporter
 	exporter, err := prometheus.NewExportPipeline(
 		prometheus.Config{},
