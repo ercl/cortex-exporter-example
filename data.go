@@ -6,7 +6,7 @@ import (
 )
 
 type Config struct {
-	Instruments []InstrumentConfig `json:"instrumentConfigs"`
+	InstrumentConfigs []InstrumentConfig `json:"instrumentConfigs"`
 }
 
 type InstrumentConfig struct {
@@ -15,6 +15,7 @@ type InstrumentConfig struct {
 	Description    string `json:"description"`
 	DataPointCount int    `json:"dataPointCount"`
 	RecordInterval int    `json:"recordInterval"`
+	instrument     interface{}
 }
 
 func readConfig(filepath string) (*Config, error) {

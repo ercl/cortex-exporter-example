@@ -15,14 +15,6 @@ import (
 )
 
 func main() {
-	config, err := readConfig("data_config.json")
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(config)
-}
-
-func sendDataToPrometheus() {
 	// Setup a new Prometheus Exporter
 	exporter, err := prometheus.NewExportPipeline(
 		prometheus.Config{},
@@ -34,30 +26,44 @@ func sendDataToPrometheus() {
 	meter := exporter.Provider().Meter("example")
 	ctx := context.Background()
 
-	// Create two instruments with Go SDK metric package
-	counter := metric.Must(meter).NewInt64Counter(
-		"a.counter",
-		metric.WithDescription("Counts things"),
-	)
-	recorder := metric.Must(meter).NewInt64ValueRecorder(
-		"a.valuerecorder",
-		metric.WithDescription("Records values"),
-	)
+	// Read config file.
+	config, err := readConfig("data_config.json")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// Add initial values to the instruments
-	counter.Add(ctx, 5, kv.String("key", "value"))
-	recorder.Record(ctx, 100, kv.String("key", "value"))
+	for _, config := range config.InstrumentConfigs {
+		if config.Type == "COUNTER" {
+			counter := metric.Must(meter).NewInt64Counter(
+				config.Label,
+				metric.WithDescription(config.Description),
+			)
+			config.instrument = counter
 
-	// Repeatedly record values every 3 seconds
-	go func() {
-		for i := 1; i <= 5000; i++ {
-			time.Sleep(3 * time.Second)
-			value := int64(i * 100)
-			fmt.Printf("%d. Recording %d in recorder and adding %d to counter\n", i, value, i)
-			recorder.Record(ctx, value, kv.String("key", "value"))
-			counter.Add(ctx, int64(i), kv.String("key", "value"))
+			go func(counter metric.Int64Counter) {
+				for i := 1; i <= config.DataPointCount; i++ {
+					time.Sleep(time.Duration(config.RecordInterval) * time.Second)
+					counter.Add(ctx, 1, kv.String("key", "value"))
+					fmt.Printf("%d. Adding 1 to counter\n", i)
+				}
+			}(counter)
 		}
-	}()
+		if config.Type == "VALUERECORDER" {
+			recorder := metric.Must(meter).NewInt64ValueRecorder(
+				config.Label,
+				metric.WithDescription(config.Description),
+			)
+			config.instrument = recorder
+
+			go func(recorder metric.Int64ValueRecorder) {
+				for i := 1; i <= config.DataPointCount; i++ {
+					time.Sleep(time.Duration(config.RecordInterval) * time.Second)
+					recorder.Record(ctx, 1, kv.String("key", "value"))
+					fmt.Printf("%d. Recording %d in recorder\n", i, 1)
+				}
+			}(recorder)
+		}
+	}
 
 	// Set up an endpoint to wait for Prometheus scrapes
 	fmt.Println("Server started!")
