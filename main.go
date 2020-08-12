@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -14,7 +15,11 @@ import (
 )
 
 func main() {
-
+	config, err := readConfig("data_config.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(config)
 }
 
 func sendDataToPrometheus() {

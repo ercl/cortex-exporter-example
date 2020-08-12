@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"io/ioutil"
-	"time"
 )
 
 type Config struct {
@@ -11,21 +10,21 @@ type Config struct {
 }
 
 type InstrumentConfig struct {
-	Type           string        // Instrument type e.g counter
-	Label          string        // Label for instrument e.g a.counter
-	Description    string        // Description for the instrument
-	DataPointCount int           // Number of values to record for the instrument
-	RecordInterval time.Duration // Duration between recording a new data point
+	Type           string `json:"type"`
+	Label          string `json:"label"`
+	Description    string `json:"description"`
+	DataPointCount int    `json:"dataPointCount"`
+	RecordInterval int    `json:"recordInterval"`
 }
 
-func readConfig(filepath string) error {
+func readConfig(filepath string) (*Config, error) {
 	// Read JSON file.
 	file, err := ioutil.ReadFile(filepath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var config Config
 	json.Unmarshal([]byte(file), &config)
-	return nil
+	return &config, nil
 }
